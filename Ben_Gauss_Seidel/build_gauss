@@ -1,0 +1,41 @@
+#!/bin/bash
+
+echo "Compiling"
+#List here all the f90 files to compile,
+myf90files="create_axis.f90 gauss-seidel.f90"
+
+### command_line.f90 not my own work, written by Chris Brady and Heather Ratcliffe, University of Warwick
+
+#Name of compiled file
+exename="gauss"
+
+
+
+#Name of compiler
+fc=gfortran
+
+#Use nf-config to grab the compile and link flags. Backticks run command and grab output
+fflags=`nf-config --fflags`
+flibs=`nf-config --flibs`
+
+
+#Actual compile line
+$fc -std=f2008 -Wall  $fflags $myf90files $flibs -o $exename
+
+
+#Report on success
+if [ $? == 0 ] #if sucessful execute ising
+then
+  echo "Produced executable "$exename
+
+  # runs executable using set parameters
+  ./$exename
+
+
+  python3 python_plotter.py
+   
+else # there is an error 
+  echo "ERROR: Failed to link executable "$exename
+fi
+
+
