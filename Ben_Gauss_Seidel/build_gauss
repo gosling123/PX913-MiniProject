@@ -2,7 +2,7 @@
 
 echo "Compiling"
 #List here all the f90 files to compile,
-myf90files="create_axis.f90 gauss-seidel.f90"
+myf90files="create_axis.f90 write_netcdf.f90 Gauss-Seidel.f90 GS-result.f90"
 
 ### command_line.f90 not my own work, written by Chris Brady and Heather Ratcliffe, University of Warwick
 
