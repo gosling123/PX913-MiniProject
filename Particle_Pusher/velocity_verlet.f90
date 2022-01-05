@@ -50,7 +50,7 @@ MODULE VELOCITY_VERLET !Module to handle claculation of phi, E etc.
       REAL(KIND=REAL64), DIMENSION(0:1000), INTENT(OUT) :: x, y !posistions
       REAL(KIND=REAL64), DIMENSION(0:1000), INTENT(OUT) :: v_x, v_y  !velocity
       REAL(KIND=REAL64), DIMENSION(0:1000), INTENT(OUT) :: a_x, a_y !acceleration
-      INTEGER :: cell_x_1, cell_x_2, k 
+      INTEGER :: cell_x, cell_y, k 
       INTEGER,INTENT(OUT) :: ver_iter !number of iterations completed
       REAL(KIND=REAL64), DIMENSION(:), ALLOCATABLE :: grid_X, grid_Y !grid 
       REAL(KIND=REAL64), DIMENSION(2) :: x_0, v_0 !initial conditions
@@ -79,12 +79,12 @@ MODULE VELOCITY_VERLET !Module to handle claculation of phi, E etc.
 
 
       !find indicies on the 2d grid
-      cell_x_1 = FLOOR((x_0(1)+1.0_REAL64)/d_x + 1)
-      cell_x_2 = FLOOR((x_0(2)+1.0_REAL64)/d_y + 1)
+      cell_x = FLOOR((x_0(1)+1.0_REAL64)/d_x + 1)
+      cell_y = FLOOR((x_0(2)+1.0_REAL64)/d_y + 1)
       
       !initial acceleration
-      a_x(0) = (q/m)*E_x(cell_x_1, cell_x_2)
-      a_y(0) = (q/m)*E_y(cell_x_1, cell_x_2)
+      a_x(0) = (q/m)*E_x(cell_x, cell_y)
+      a_y(0) = (q/m)*E_y(cell_x, cell_y)
 
       !initial posisition
       x(0) = x_0(1)
@@ -104,18 +104,18 @@ MODULE VELOCITY_VERLET !Module to handle claculation of phi, E etc.
         y(k) = y(k-1) + v_x(k-1)*d_t + 0.50_REAL64*a_y(k-1)*d_t**2.0_REAL64
 
         !find grid indicies
-        cell_x_1 = FLOOR((x(k)+1.0_REAL64)/d_x + 1)
-        cell_x_2 = FLOOR((x(k)+1.0_REAL64)/d_y + 1)
+        cell_x = FLOOR((x(k)+1.0_REAL64)/d_x + 1)
+        cell_y = FLOOR((y(k)+1.0_REAL64)/d_y + 1)
 
         ! exit loop if out of bounds
-        IF (cell_x_1 > n_x) EXIT
-        IF (cell_x_2 > n_y) EXIT
+        IF (cell_x > n_x) EXIT
+        IF (cell_y > n_y) EXIT
 
         ! PRINT*, cell_x_1, cell_x_2
 
         !verlet update on accelerations
-        a_x(k) = (q/m)*E_x(cell_x_1, cell_x_2)
-        a_y(k) = (q/m)*E_y(cell_x_1, cell_x_2)
+        a_x(k) = (q/m)*E_x(cell_x, cell_y)
+        a_y(k) = (q/m)*E_y(cell_x, cell_y)
 
         !verlet update on velocities
         v_x(k) = v_x(k-1) + 0.5_REAL64*d_t*(a_x(k) + a_x(k-1))

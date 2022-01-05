@@ -9,6 +9,7 @@ MODULE write_netcdf
 
   CONTAINS
 
+  ! subroutine to perform error status check
   SUBROUTINE check(status)
     INTEGER, INTENT (IN) :: status
     
@@ -27,10 +28,10 @@ MODULE write_netcdf
 
   SUBROUTINE writer_prototype(filename, rho, phi, E_x, E_y, x, y, v_x, v_y, a_x, a_y, n_x, n_y, problem, ver_iter, dx, dy, d_t)
 
-      REAL(KIND=REAL64), INTENT(IN), DIMENSION(:,:) :: rho, phi, E_x, E_y
-      REAL(KIND=REAL64), INTENT(IN), DIMENSION(:) :: x, y, v_x, v_y, a_x, a_y
+      REAL(KIND=REAL64), INTENT(IN), DIMENSION(:,:) :: rho, phi, E_x, E_y ! Electric 2D array quantaties
+      REAL(KIND=REAL64), INTENT(IN), DIMENSION(:) :: x, y, v_x, v_y, a_x, a_y ! Verlet 1D array quantaties
       INTEGER, PARAMETER :: ndims = 2
-      INTEGER, DIMENSION(ndims) :: size_rho, size_phi, size_E_x, size_E_y
+      INTEGER, DIMENSION(ndims) :: size_rho, size_phi, size_E_x, size_E_y 
       INTEGER :: size_x, size_y
       INTEGER :: size_v_x, size_v_y
       INTEGER :: size_a_x, size_a_y
