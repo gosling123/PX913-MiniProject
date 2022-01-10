@@ -29,48 +29,48 @@ MODULE write_netcdf
   ! @param run_data rundata type structure that contains information about the code
   ! @param filename name of the file to create and store data in 
   ! @param ierr to store return error code
-  SUBROUTINE writer_prototype(filename,rho,phi,E_x,E_y,x,y,v_x,v_y,a_x,a_y,n_x,n_y,problem,ver_iter,dx,dy,dt)
+  SUBROUTINE writer_prototype(filename,rho,phi,Ex,Ey,x,y,vx,vy,ax,ay,nx,ny,problem,ver_iter,dx,dy,dt)
 
-    REAL(REAL64),INTENT(IN),DIMENSION(:,:)  :: rho,phi,E_x,E_y
-    REAL(REAL64),INTENT(IN),DIMENSION(:)    :: x,y,v_x,v_y,a_x,a_y
-    INTEGER, PARAMETER                      :: ndims = 2
-    INTEGER, DIMENSION(ndims)               :: rho_size,phi_size,E_x_size,E_y_size
-    INTEGER, DIMENSION(ndims)               :: rho_dim_ids,phi_dim_ids,E_x_dim_ids,E_y_dim_ids
-    INTEGER                                 :: x_size,y_size,v_x_size,v_y_size,a_x_size,a_y_size 
-    CHARACTER(LEN=*), DIMENSION(ndims),PARAMETER      :: rho_dims=(/"rho_x", "rho_y"/),phi_dims=(/"phi_x","phi_y"/)
-    CHARACTER(LEN=*), DIMENSION(ndims),PARAMETER      :: E_x_dims=(/"E_x_x", "E_x_y"/),E_y_dims=(/"E_y_x","E_y_y"/)
-    CHARACTER(LEN=*), PARAMETER             :: x_dim = "x", y_dim="y", v_x_dim="v_x", v_y_dim="v_y", a_x_dim="a_x", a_y_dim="a_y"
-    INTEGER                                 :: x_dim_id,y_dim_id,v_x_dim_id,v_y_dim_id,a_x_dim_id,a_y_dim_id
-    CHARACTER(LEN=*), INTENT(IN)            :: filename
-    INTEGER                                 :: file_id
-    INTEGER                                 :: rho_id,phi_id,E_x_id,E_y_id
-    INTEGER                                 :: x_id,y_id,v_x_id,v_y_id,a_x_id,a_y_id
-    INTEGER                                 :: ierr, i
-    INTEGER,INTENT(IN)                      :: n_x,n_y,ver_iter
-    REAL(REAL64),INTENT(IN)                 :: dx,dy,dt
-    CHARACTER(LEN=*),INTENT(IN)             :: problem
+    REAL(REAL64),INTENT(IN),DIMENSION(:,:)        :: rho,phi,Ex,Ey
+    REAL(REAL64),INTENT(IN),DIMENSION(:)          :: x,y,vx,vy,ax,ay
+    INTEGER, PARAMETER                            :: ndims = 2
+    INTEGER, DIMENSION(ndims)                     :: rho_size,phi_size,Ex_size,Ey_size
+    INTEGER, DIMENSION(ndims)                     :: rho_dim_ids,phi_dim_ids,Ex_dim_ids,Ey_dim_ids
+    INTEGER                                       :: x_size,y_size,vx_size,vy_size,ax_size,ay_size 
+    CHARACTER(LEN=*), DIMENSION(ndims),PARAMETER  :: rho_dims=(/"rho_x", "rho_y"/),phi_dims=(/"phi_x","phi_y"/)
+    CHARACTER(LEN=*), DIMENSION(ndims),PARAMETER  :: Ex_dims=(/"Ex_x", "Ex_y"/),Ey_dims=(/"Ey_x","Ey_y"/)
+    CHARACTER(LEN=*), PARAMETER                   :: x_dim = "x", y_dim="y", vx_dim="vx", vy_dim="vy", ax_dim="ax", ay_dim="ay"
+    INTEGER                                       :: x_dim_id,y_dim_id,vx_dim_id,vy_dim_id,ax_dim_id,ay_dim_id
+    CHARACTER(LEN=*), INTENT(IN)                  :: filename
+    INTEGER                                       :: file_id
+    INTEGER                                       :: rho_id,phi_id,Ex_id,Ey_id
+    INTEGER                                       :: x_id,y_id,vx_id,vy_id,ax_id,ay_id
+    INTEGER                                       :: ierr, i
+    INTEGER,INTENT(IN)                            :: nx,ny,ver_iter
+    REAL(REAL64),INTENT(IN)                       :: dx,dy,dt
+    CHARACTER(LEN=*),INTENT(IN)                   :: problem
 
     rho_size = SHAPE(rho)
     phi_size = SHAPE(phi)
-    E_x_size = SHAPE(E_x)
-    E_y_size = SHAPE(E_y)
+    Ex_size = SHAPE(Ex)
+    Ey_size = SHAPE(Ey)
     
     x_size = SIZE(x)
     y_size = SIZE(y)
-    v_x_size = SIZE(v_x)
-    v_y_size = SIZE(v_y)
-    a_x_size = SIZE(a_x)
-    a_y_size = SIZE(a_y)
+    vx_size = SIZE(vx)
+    vy_size = SIZE(vy)
+    ax_size = SIZE(ax)
+    ay_size = SIZE(ay)
 
     ! Create the file, overwriting if it exists
     ierr = nf90_create(filename, NF90_CLOBBER, file_id)
     CALL check_error(ierr)
 
     !Defining global attributes
-    ierr = nf90_put_att(file_id, NF90_GLOBAL, "n_x", n_x)
+    ierr = nf90_put_att(file_id, NF90_GLOBAL, "nx", nx)
     CALL check_error(ierr)
 
-    ierr = nf90_put_att(file_id, NF90_GLOBAL, "n_y", n_y)
+    ierr = nf90_put_att(file_id, NF90_GLOBAL, "ny", ny)
     CALL check_error(ierr)
 
     ierr = nf90_put_att(file_id, NF90_GLOBAL, "Problem", problem)
@@ -97,10 +97,10 @@ MODULE write_netcdf
       ierr = nf90_def_dim(file_id, phi_dims(i), phi_size(i), phi_dim_ids(i))
       CALL check_error(ierr)
 
-      ierr = nf90_def_dim(file_id, E_x_dims(i), E_x_size(i), E_x_dim_ids(i))
+      ierr = nf90_def_dim(file_id, Ex_dims(i), Ex_size(i), Ex_dim_ids(i))
       CALL check_error(ierr)
 
-      ierr = nf90_def_dim(file_id, E_y_dims(i), E_y_size(i), E_y_dim_ids(i))
+      ierr = nf90_def_dim(file_id, Ey_dims(i), Ey_size(i), Ey_dim_ids(i))
       CALL check_error(ierr)
 
     END DO
@@ -112,16 +112,16 @@ MODULE write_netcdf
     ierr = nf90_def_dim(file_id, y_dim, y_size, y_dim_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_dim(file_id, v_x_dim, v_x_size, v_x_dim_id)
+    ierr = nf90_def_dim(file_id, vx_dim, vx_size, vx_dim_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_dim(file_id, v_y_dim, v_y_size, v_y_dim_id)
+    ierr = nf90_def_dim(file_id, vy_dim, vy_size, vy_dim_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_dim(file_id, a_x_dim, a_x_size, a_x_dim_id)
+    ierr = nf90_def_dim(file_id, ax_dim, ax_size, ax_dim_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_dim(file_id, a_y_dim, a_y_size, a_y_dim_id)
+    ierr = nf90_def_dim(file_id, ay_dim, ay_size, ay_dim_id)
     CALL check_error(ierr)
 
     ! Define variable type for data
@@ -131,10 +131,10 @@ MODULE write_netcdf
     ierr = nf90_def_var(file_id, "phi", NF90_DOUBLE, phi_dim_ids, phi_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_var(file_id, "E_x", NF90_DOUBLE, E_x_dim_ids, E_x_id)
+    ierr = nf90_def_var(file_id, "Ex", NF90_DOUBLE, Ex_dim_ids, Ex_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_var(file_id, "E_y", NF90_DOUBLE, E_y_dim_ids, E_y_id)
+    ierr = nf90_def_var(file_id, "Ey", NF90_DOUBLE, Ey_dim_ids, Ey_id)
     CALL check_error(ierr)
 
     ierr = nf90_def_var(file_id, "x", NF90_DOUBLE, x_dim_id, x_id)
@@ -143,16 +143,16 @@ MODULE write_netcdf
     ierr = nf90_def_var(file_id, "y", NF90_DOUBLE, y_dim_id, y_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_var(file_id, "v_x", NF90_DOUBLE, v_x_dim_id, v_x_id)
+    ierr = nf90_def_var(file_id, "vx", NF90_DOUBLE, vx_dim_id, vx_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_var(file_id, "v_y", NF90_DOUBLE, v_y_dim_id, v_y_id)
+    ierr = nf90_def_var(file_id, "vy", NF90_DOUBLE, vy_dim_id, vy_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_var(file_id, "a_x", NF90_DOUBLE, a_x_dim_id, a_x_id)
+    ierr = nf90_def_var(file_id, "ax", NF90_DOUBLE, ax_dim_id, ax_id)
     CALL check_error(ierr)
 
-    ierr = nf90_def_var(file_id, "a_y", NF90_DOUBLE, a_y_dim_id, a_y_id)
+    ierr = nf90_def_var(file_id, "ay", NF90_DOUBLE, ay_dim_id, ay_id)
     CALL check_error(ierr)
 
     ! Finish defining metadata
@@ -166,10 +166,10 @@ MODULE write_netcdf
     ierr = nf90_put_var(file_id, phi_id, phi)
     CALL check_error(ierr)
 
-    ierr = nf90_put_var(file_id, E_x_id, E_x)
+    ierr = nf90_put_var(file_id, Ex_id, Ex)
     CALL check_error(ierr)
 
-    ierr = nf90_put_var(file_id, E_y_id, E_y)
+    ierr = nf90_put_var(file_id, Ey_id, Ey)
     CALL check_error(ierr)
 
     ierr = nf90_put_var(file_id, x_id, x)
@@ -178,16 +178,16 @@ MODULE write_netcdf
     ierr = nf90_put_var(file_id, y_id, y)
     CALL check_error(ierr)
 
-    ierr = nf90_put_var(file_id, v_x_id, v_x)
+    ierr = nf90_put_var(file_id, vx_id, vx)
     CALL check_error(ierr)
 
-    ierr = nf90_put_var(file_id, v_y_id, v_y)
+    ierr = nf90_put_var(file_id, vy_id, vy)
     CALL check_error(ierr)
 
-    ierr = nf90_put_var(file_id, a_x_id, a_x)
+    ierr = nf90_put_var(file_id, ax_id, ax)
     CALL check_error(ierr)
 
-    ierr = nf90_put_var(file_id, a_y_id, a_y)
+    ierr = nf90_put_var(file_id, ay_id, ay)
     CALL check_error(ierr)
 
     ! Close the file

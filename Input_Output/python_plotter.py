@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 dat = NC.Dataset("particle_pusher_data.nc","r",format = "NETCDF4")
 
 #Get the 2D-grid and time history for plotting
-E_x = dat.variables['E_x'][:]
+Ex = dat.variables['Ex'][:]
 x = dat.variables['x'][:]
 y = dat.variables['y'][:]
 
@@ -14,8 +14,8 @@ y = dat.variables['y'][:]
 fig, axes = plt.subplots(1,2)
 
 #Using imshow for displaying grid
-axes[0].pcolor(E_x,cmap='gray')
-axes[0].set_title('E_X')
+axes[0].pcolor(Ex)
+axes[0].set_title('Ex')
 axes[0].set_xlabel('X')
 axes[0].set_ylabel('Y')
 #Creating custom legend
