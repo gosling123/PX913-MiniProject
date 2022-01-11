@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#List here all the f90 files to compile,
+myf90files="main.f90 create_axis.f90 shared_data.f90 io.f90 gauss_seidel.f90 velocity_verlet.f90 "
+
+### command_line.f90 not my own work, written by Chris Brady and Heather Ratcliffe, University of Warwick
+
+#Name of compiled file
+exename="gauss"
+
+#Name of compiler
+fc=gfortran
+
+#Use nf-config to grab the compile and link flags. Backticks run command and grab output
+fflags=`nf-config --fflags`
+flibs=`nf-config --flibs`
+
+#Actual compile line
+$fc -std=f2008 -Wall -fbacktrace -ffpe-trap=zero,overflow,invalid $fflags $myf90files $flibs -o $exename 
+
