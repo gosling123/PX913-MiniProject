@@ -13,6 +13,10 @@ MODULE write_netcdf
 
   CONTAINS
 
+  ! The below helper subroutine checks for error for any
+  ! of the NetCDF calls we place and stops the program 
+  ! in case an error does exist
+  !@param ierr error code for NetCDF subroutine
   SUBROUTINE check_error(ierr)
     INTEGER,INTENT(IN) :: ierr
 
@@ -22,13 +26,26 @@ MODULE write_netcdf
     END IF
 
   END SUBROUTINE check_error
+
   ! The below subroutine takes a 2-D array larr a 1-D array time_arr
-  ! a rundata(for global metadata) type and writes it into a Netcdf file 
-  ! @param larr 2-D array of type integer
-  ! @param time_arr 1-D array of type real
-  ! @param run_data rundata type structure that contains information about the code
-  ! @param filename name of the file to create and store data in 
-  ! @param ierr to store return error code
+  ! @param filename name of the file to create and store data in
+  ! @param rho 2D array containing data for charge density
+  ! @param phi 2D array containing data for scalar potential
+  ! @param Ex 2D array containing data for x component for electric field
+  ! @param Ey 2D array containing data for y component for electric field
+  ! @param x 1D array containing x-axis position of particle at each timestep
+  ! @param y 1D array containing y-axis position of particle at each timestep
+  ! @param vx 1D array containing x-component of velocity of particle at each timestep
+  ! @param vy 1D array containing y-component of velocity of particle at each timestep
+  ! @param ax 1D array containing x-component of acceleration of particle at each timestep
+  ! @param ay 1D array containing y-component of acceleration of particle at each timestep
+  ! @param nx number of grid elements in the x-axis(global)
+  ! @param ny number of grid elements in the y-axis(global)
+  ! @param problem the user-defined initial conditions(global)
+  ! @param ver_iter Number of iterations done for velocity verlet(global)
+  ! @param dx size of grid discretization in x-direction(global)
+  ! @param dy size of grid discretization in y-direction(global)
+  ! @param dt Timestep used for velocity verlet(global)
   SUBROUTINE writer_prototype(filename,rho,phi,Ex,Ey,x,y,vx,vy,ax,ay,nx,ny,problem,ver_iter,dx,dy,dt)
 
     REAL(REAL64),INTENT(IN),DIMENSION(:,:)        :: rho,phi,Ex,Ey
@@ -50,6 +67,7 @@ MODULE write_netcdf
     REAL(REAL64),INTENT(IN)                       :: dx,dy,dt
     CHARACTER(LEN=*),INTENT(IN)                   :: problem
 
+    ! Getting shapes and sizes for the variables to be written
     rho_size = SHAPE(rho)
     phi_size = SHAPE(phi)
     Ex_size = SHAPE(Ex)
