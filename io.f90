@@ -7,25 +7,38 @@ module io
 
     CONTAINS
   
-  
-    ! subroutine to perform error status check
+    !************************************************************************
+    !> setup_sys
+    !!
+    !! subroutine to perform error status check
+    !!
+    !!@param status : status code for error
+    !************************************************************************
+    !
     SUBROUTINE check(status)
       INTEGER, INTENT (IN) :: status
       
       IF(status /= nf90_noerr) THEN 
         PRINT *, trim(nf90_strerror(status))
-        STOP "Stopped"
+        STOP ""
       END IF
     end subroutine check  
-  
-  
-    ! I wrote this based on the example at
-    ! https://people.sc.fsu.edu/~jburkardt/f_src/netcdf/netcdf.html
-    ! to get the hang of writing a simple file
-    ! This page is available via the Wayback machine at
-    ! https://web.archive.org/web/20190623025346/http://people.sc.fsu.edu/~jburkardt/f_src/netcdf/netcdf.html (accessedNov 2021)
-  
-    SUBROUTINE writer_prototype(filename)
+    
+    !************************************************************************
+    !> writer prototype
+    !! subroutine to perform error status check
+    !!
+    !! I wrote this based on the example at
+    !! https://people.sc.fsu.edu/~jburkardt/f_src/netcdf/netcdf.html
+    !! to get the hang of writing a simple file
+    !! This page is available via the Wayback machine at
+    !! https://web.archive.org/web/20190623025346/http://people.sc.fsu.edu/~jburkardt/f_src/netcdf/netcdf.html (accessedNov 2021)
+    !!
+    !!@param filename : filename to store data in
+    !!@param problem : initial problem setup
+    !************************************************************************
+    !
+    SUBROUTINE writer_prototype(filename, problem)
   
         INTEGER, DIMENSION(2) :: size_rho, size_phi, size_r, size_v, size_a
         INTEGER, DIMENSION(2) :: rho_dim_ids, phi_dim_ids, r_dim_ids, v_dim_ids, a_dim_ids
@@ -41,17 +54,18 @@ module io
         INTEGER :: rho_var_id, phi_var_id, E_var_id
         INTEGER :: r_var_id, v_var_id,  a_var_id
         INTEGER :: k, file_id
+        CHARACTER(LEN=*) :: problem 
     
     
         ! define size of arrays
-        size_rho = SHAPE(rho)
-        size_phi = SHAPE(phi)
+        size_rho = SHAPE(rho(1:n_x, 1:n_y))
+        size_phi = SHAPE(phi(1:n_x, 1:n_y))
         size_E = SHAPE(E)
-        size_r = SIZE(r)
-        size_v = SIZE(v)
-        size_a = SIZE(a)
+        size_r = SHAPE(r)
+        size_v = SHAPE(v)
+        size_a = SHAPE(a)
    
-    
+        print *, size_r
         ! Create the file, overwriting if it exists
         CALL check(nf90_create(filename, NF90_CLOBBER, file_id))
     
@@ -77,9 +91,6 @@ module io
         CALL check (nf90_def_var(file_id, "rho", NF90_DOUBLE, rho_dim_ids, rho_var_id))
         CALL check (nf90_def_var(file_id, "phi", NF90_DOUBLE, phi_dim_ids, phi_var_id))
         CALL check (nf90_def_var(file_id, "E", NF90_DOUBLE, E_dim_ids, E_var_id))
-        print *, "hi"
-
-        
         CALL check (nf90_def_var(file_id, "r", NF90_DOUBLE, r_dim_ids, r_var_id))
         CALL check (nf90_def_var(file_id, "v", NF90_DOUBLE, v_dim_ids, v_var_id))
         CALL check (nf90_def_var(file_id, "a", NF90_DOUBLE, a_dim_ids, a_var_id))
@@ -87,15 +98,11 @@ module io
         print *, "Variable types defined"
   
   
-  
-  
-        !CALL check(nf90_put_att(file_id, NF90_GLOBAL, "n_x", n_x))
-        !CALL check(nf90_put_att(file_id, NF90_GLOBAL, "n_y", n_y))
-        !CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Prob", problem))
-        !CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Verlet_Iteration", ver_iter))
-        !CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Time_step", d_t))
-        !CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Delta_x", dx))
-        !CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Delta_y", dy))
+        !Setting up meta variables of simulation
+        CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Prob", problem))
+        CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Verlet_Iteration", viter))
+        CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Delta_x", d_x))
+        CALL check(nf90_put_att(file_id, NF90_GLOBAL, "Delta_y", d_y))
 
         ! Finish defining metadata
         CALL check(nf90_enddef(file_id))
@@ -103,8 +110,8 @@ module io
     
     
         ! Actually write the variables
-        CALL check(nf90_put_var(file_id, rho_var_id, rho))
-        CALL check(nf90_put_var(file_id, phi_var_id, phi))
+        CALL check(nf90_put_var(file_id, rho_var_id, rho(1:n_x, 1:n_y)))
+        CALL check(nf90_put_var(file_id, phi_var_id, phi(1:n_x, 1:n_y)))
         CALL check(nf90_put_var(file_id, E_var_id, E))
         CALL check(nf90_put_var(file_id, r_var_id, r))
         CALL check(nf90_put_var(file_id, v_var_id, v))

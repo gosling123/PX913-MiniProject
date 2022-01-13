@@ -7,15 +7,24 @@ MODULE VELOCITY_VERLET !Module to handle claculation of phi, E etc.
   
     
     CONTAINS
-      
-    !subroutine to validate timestep, allocate arrays and set up intial condition
+    
+    !************************************************************************
+    !> setup_verlet
+    !!
+    !!subroutine to validate timestep, allocate arrays and set up intial condition
+    !!
+    !! @param problem : initial problem setup
+    !! @param maxsteps : maximum number of steps for simulation
+    !! @param stepsize : time interval between two iterations (dt)
+    !************************************************************************
+    !    
     SUBROUTINE setup_verlet(problem, maxsteps, stepsize)
-      CHARACTER(LEN=*), INTENT(IN) :: problem !defines the set up of problem
-      integer, intent(in) :: maxsteps !max number of steps to run the simulation for
+      CHARACTER(LEN=*), INTENT(IN) :: problem 
+      integer, intent(in) :: maxsteps
       real(kind=real64) :: stepsize
     
 
-      dt = stepsize
+      d_t = stepsize
       max_steps = maxsteps
 
       allocate(r(0:maxsteps, 2),v(0:maxsteps, 2), a(0:maxsteps, 2))
@@ -46,10 +55,18 @@ MODULE VELOCITY_VERLET !Module to handle claculation of phi, E etc.
     END SUBROUTINE 
   
   
-    !subroutine to perform the velocity verlet algorithm
+    !************************************************************************
+    !> iterative_verlet
+    !!
+    !!subroutine to perform the velocity verlet algorithm
+    !!
+    !! @param start : start index for iterating verlet
+    !! @param nsteps : number of steps for simulation after start
+    !************************************************************************
+    !
     SUBROUTINE iterate_verlet(start, nsteps)
        
-        INTEGER :: start, nsteps !set number of iterations
+        INTEGER :: start, nsteps 
         INTEGER :: cell(2), k 
 
         if (.not. allocated(r)) stop "Positions not allocated for iterate_verlet, run setup_verlet first"
@@ -60,11 +77,7 @@ MODULE VELOCITY_VERLET !Module to handle claculation of phi, E etc.
 
         if (.not. allocated(E)) stop "Electical potenial not allocated for iterate_verlet, run setup_sys first"
 
-        if (dt .eq. -1.0_real64) stop "Error in iterate_verlet, dt has not been declared"
-
-        if (d_x .eq. -1.0_real64) stop "Error in iterate_verlet, dx has not been declared"
-
-        if (d_y .eq. -1.0_real64) stop "Error in iterate_verlet, dy has not been declared"
+        if (d_t .eq. -1.0_real64) stop "Error in iterate_verlet, d_t has not been declared"
 
         if (start < 0) stop "Error in iterate_verlet: Trying to start at negative time"
 
@@ -73,48 +86,38 @@ MODULE VELOCITY_VERLET !Module to handle claculation of phi, E etc.
   
         
         !find indicies on the 2d grid
-        cell = FLOOR((r(0, :)+1.0_REAL64)/[d_x, d_y] + 1)
-        
+        cell = FLOOR(  (r(0, :)+1.0_REAL64)  /[d_x, d_y] + 1)
+      
         !initial acceleration
-        a(0, :) = E(cell(1), cell(2), :)
+        a(0, :) = q/m *E(cell(1), cell(2), :)
   
-    
         DO k = 1, nsteps
   
-          !verlet update on posistions
-          r(k, :) = r(k-1, :) + v(k-1, :)*dt + 0.50_REAL64*a(k-1, :)*dt**2.0_REAL64
-  
+          !verlet update on positions
+          r(k, :) = r(k-1, :) + v(k-1, :)*d_t + 0.50_REAL64*a(k-1, :)*d_t**2.0_REAL64
+          
           !find grid indicies
           cell = FLOOR((r(k, :)+1.0_REAL64)/[d_x, d_y] + 1)
           
-  
           ! exit loop if out of bounds
           IF (cell(1) > n_x .or. cell(1) < 1 .or. cell(2) > n_y .or. cell(2) < 1) THEN
             print *, "particle exited at timestep", k
-            tstep_end = k
+            viter = k
             return
 
           end if
   
           !verlet update on accelerations
-          a(k, :) = E(cell(1), cell(2), :)
-  
+          a(k, :) = q/m*E(cell(1), cell(2), :)
+    
           !verlet update on velocities
-          v(k, :) = v(k-1, :) + 0.5_REAL64*dt*(a(k, :) + a(k-1, :))
-  
-  
+          v(k, :) = v(k-1, :) + 0.5_REAL64*d_t*(a(k, :) + a(k-1, :))
+
         END DO
   
+        viter = k
   
-  
-      END SUBROUTINE 
-  
-  
-  
-  
-  
-  
-  
+      END SUBROUTINE
     
   END MODULE VELOCITY_VERLET
   

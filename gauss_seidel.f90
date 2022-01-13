@@ -2,7 +2,7 @@
 ! Module to setup a lattice model of the system.
 !
 ! Contains subroutines for calculating the scalar potential,
-!charge density and electci field lines
+!charge density and electcic field lines
 
 MODULE GAUSS_SEIDEL 
 
@@ -14,21 +14,24 @@ MODULE GAUSS_SEIDEL
   
   CONTAINS
 
+  !************************************************************************
+  !> setup_sys
+  !!
   !Subroutine to allocate memory  and to genearte grid structure 
   ! using create axis supplied by Chris Brady and Heather 
   ! Ratcliffe (University of Warwick)
-
-  ! System Properties Variables are all set to 0 here
-
+  ! System Properties Variables are all set to 0 here 
+  !************************************************************************
+  !
   SUBROUTINE setup_sys()
 
     !Creates grid_X-axis
-    CALL create_axis(grid_X, nels=n_x, axis_range=[-1.0_real64, 1.0_real64], nghosts=1, delta=d_x)
+    CALL create_axis(grid_X, nels=n_x, axis_range=[-1.0_REAL64, 1.0_REAL64], nghosts=1, delta=d_x)
     print *, "X axis generated"
     
 
     !Creates grid_Y-axis
-    CALL create_axis(grid_Y, nels=n_y, axis_range=[-1.0_real64, 1.0_real64], nghosts=1, delta=d_y)
+    CALL create_axis(grid_Y, nels=n_y, axis_range=[-1.0_REAL64, 1.0_REAL64], nghosts=1, delta=d_y)
     print *, "Y axis generated"
 
     
@@ -41,7 +44,14 @@ MODULE GAUSS_SEIDEL
   END SUBROUTINE setup_sys
 
 
-  !Subroutine to handle the generation of selected charge densities
+  !************************************************************************
+  !> get_charge_density
+  !!
+  !!Subroutine to handle the generation of selected charge densities
+  !!
+  !!@param problem: Initial problem setup (null,single,double)
+  !************************************************************************
+  !
   SUBROUTINE get_charge_density(problem)
 
     INTEGER :: i, j
@@ -59,48 +69,54 @@ MODULE GAUSS_SEIDEL
       ! null -- charge density is equal to zero in all space
       case ("null") 
       
-      !Rho already initialized to be 0, exit subroutine
-      return
+        !Rho already initialized to be 0, exit subroutine
+        return
 
 
       !single -- charge density has spatial variation defined by a single Gaussian function
       case ("single") 
-                
-      DO j=1, n_y
-        DO i=1, n_x
+                    
+        DO j=1, n_y
+          DO i=1, n_x
 
-          exponent_1 = ((grid_X(i)/0.1)**2 + (grid_Y(j)/0.1)**2)
-          rho(i,j) = EXP(-1.0_REAL64*exponent_1)
-        
+            exponent_1 = ((grid_X(i)/0.1)**2 + (grid_Y(j)/0.1)**2)
+            rho(i,j) = EXP(-1.0_REAL64*exponent_1)
+          
+          END DO 
         END DO 
-      END DO 
 
 
 
     !double -- charge density has spatial variation defined by a double Gaussian function  
       case ("double")
 
-      DO j=1, n_y
-        DO i=1, n_x
+        DO j=1, n_y
+          DO i=1, n_x
 
-          exponent_1 = -1.0_REAL64*(((grid_X(i)+0.25)/0.1)**2 + ((grid_Y(j)+0.25)/0.1)**2) 
-          exponent_2 = -1.0_REAL64*(((grid_X(i)-0.75)/0.2)**2 + ((grid_Y(j)-0.75)/0.2)**2)
-          rho(i,j) = EXP(exponent_1) + EXP(exponent_2)
-        
-        END DO 
-      END DO
+            exponent_1 = -1.0_REAL64*(((grid_X(i)+0.25)/0.1)**2 + ((grid_Y(j)+0.25)/0.1)**2) 
+            exponent_2 = -1.0_REAL64*(((grid_X(i)-0.75)/0.2)**2 + ((grid_Y(j)-0.75)/0.2)**2)
+            rho(i,j) = EXP(exponent_1) + EXP(exponent_2)
+          
+          END DO 
+        END DO
 
       ! condition to enforce one of the three setups
       case default
-      PRINT*, "PLEASE INPUT PROBLEM AS 'null', 'single' or 'double'"
-      STOP "Stopped"
+        PRINT*, "PLEASE INPUT PROBLEM AS 'null', 'single' or 'double'"
+        STOP "Stopped"
 
       END SELECT
 
   END SUBROUTINE get_charge_density
 
 
-  !subroutine to calculate electric potential from Poission's Equation using Gauss-Seidel iteration
+  !************************************************************************
+  !> get_potential
+  !!
+  !!subroutine to calculate electric potential from Poission's Equation
+  !! using Gauss-Seidel iteration
+  !************************************************************************
+  !
   SUBROUTINE get_potential()
 
     INTEGER :: i, j, k, N
@@ -135,7 +151,8 @@ MODULE GAUSS_SEIDEL
       !Start of Gauss-Seidel process
       DO k=1, iterations
 
-        IF (ABS(e_tot/d_rms) <= tol) then
+        !eps added to avoid division by 0
+        IF (ABS(e_tot/(d_rms + eps)) < tol) then
           print *, "Gauss Seidel Converged Successfully after", k, "iterations" 
           RETURN !condition for breaking loop and outputting a converged value of phi
 
@@ -173,19 +190,22 @@ MODULE GAUSS_SEIDEL
           END DO 
         END DO
 
-        PRINT*,'Iteration:', k
-        print*, 'e_tot', e_tot,'d_rms', d_rms, 'Condition', e_tot/d_rms
-
       END DO 
 
       ! Warning if phi has failed to converge
-      PRINT *, "WARNING, GAUSS SEIDEL NOT CONVERGED"
+      PRINT *, "WARNING, GAUSS SEIDEL NOT CONVERGED IN ", iterations, " ITERATIONS"
 
     END IF
 
   END SUBROUTINE get_potential
 
-  !subroutine to calculate the electric field from phi t
+
+  !************************************************************************
+  !> get_electric_field
+  !!
+  !!subroutine to calculate the electric field from phi t
+  !************************************************************************
+  !
   subroutine get_electric_field()
     INTEGER :: i, j
 
@@ -196,8 +216,8 @@ MODULE GAUSS_SEIDEL
     DO j=1, n_y
       DO i=1, n_x
 
-        E(i,j, 0) = (phi(i+1,j) - phi(i-1,j))/(2*d_x) !Electric field in x
-        E(i,j, 1) = (phi(i,j+1) - phi(i,j-1))/(2*d_y) !Electric field in y
+        E(i,j, 1) = (phi(i+1,j) - phi(i-1,j))/(2*d_x) !Electric field in x
+        E(i,j, 2) = (phi(i,j+1) - phi(i,j-1))/(2*d_y) !Electric field in y
       
       END DO 
     END DO
